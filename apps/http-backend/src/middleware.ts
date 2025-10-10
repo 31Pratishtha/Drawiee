@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from "./config";
+import { JWT_SECRET } from "@repo/backend-common/config";
 
 export function middleware (req: Request, res: Response, next: NextFunction) {
   const token = req.headers.authorization ?? ''
@@ -9,7 +9,7 @@ export function middleware (req: Request, res: Response, next: NextFunction) {
 
   if(decoded){
     
-    //todo
+    //@ts-ignore //todo
     req.userId = decoded.userId
     next()
   } else {
