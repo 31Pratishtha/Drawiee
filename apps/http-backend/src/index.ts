@@ -4,14 +4,13 @@ import {
 	CreateUserSchema,
 	SignInSchema,
 } from '@repo/common/types'
-import { prismaClient } from '@repo/db/db'
+import { prismaClient } from '@repo/db/client'
 import express from 'express'
 import jwt from 'jsonwebtoken'
 import { middleware } from './middleware'
 
 const app = express()
 app.use(express.json())
-
 //Signup
 app.post('/signup', async (req, res) => {
 	//db call
