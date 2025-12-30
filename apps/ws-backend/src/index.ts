@@ -14,8 +14,6 @@ const users: User[] = []
 
 const wss = new WebSocketServer({ port: 8080 })
 
-console.log('from env', process.env.JWT_SECRET)
-console.log ('from config', JWT_SECRET)
 
 const checkUser = (token: string): string | null => {
 	try {
