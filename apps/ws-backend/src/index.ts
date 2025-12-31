@@ -58,16 +58,15 @@ wss.on('connection', function connection(ws, request) {
 	})
 
 	ws.on('message', function message(data) {
+		
 		try {
 			const parsedData = JSON.parse(data as unknown as string)
 
 			if (parsedData.type === 'join_room') {
 				const user = users.find((u) => u.ws === ws)
-				if (!user) {
-					return
+				if(!user?.rooms.includes(parsedData.roomId)){
+					user?.rooms.push(parsedData.roomId)
 				}
-				user.rooms.push(parsedData.roomId)
-				console.log('join:', user.rooms)
 			}
 
 			if (parsedData.type === 'leave_room') {
@@ -76,7 +75,6 @@ wss.on('connection', function connection(ws, request) {
 					return
 				}
 				user.rooms = user?.rooms.filter((r) => r === parsedData.roomId)
-				console.log('leave:', user.rooms)
 			}
 
 			if (parsedData.type === 'chat') {

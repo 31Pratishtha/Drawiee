@@ -35,13 +35,12 @@ app.post('/signup', async (req, res) => {
 			},
 		})
 
-
 		res.json({
 			userId: user.id,
 		})
 	} catch (e) {
 		res.status(411).json({
-			message: 'Error creating user',
+			message: 'User already exists',
 		})
 	}
 })
@@ -59,7 +58,7 @@ app.post('/signin', async (req, res) => {
 
 	const user = await prisma.user.findFirst({
 		where: {
-			email: parsedData.data.username,
+			email: parsedData.data.email,
 			password: parsedData.data.password
 		}
 	})
@@ -106,7 +105,7 @@ app.post('/room', middleware, async (req, res) => {
 	
 	} catch (e) {
 		res.status(411).json({
-			message: 'Error creating room'
+			message: 'room already exists'
 		})
 		
 	}
