@@ -54,11 +54,10 @@ wss.on('connection', function connection(ws, request) {
 	users.push({
 		ws,
 		rooms: [],
-		userId: userId,
+		userId,
 	})
 
 	ws.on('message', function message(data) {
-		
 		try {
 			const parsedData = JSON.parse(data as unknown as string)
 
@@ -74,7 +73,7 @@ wss.on('connection', function connection(ws, request) {
 				if (!user) {
 					return
 				}
-				user.rooms = user?.rooms.filter((r) => r === parsedData.roomId)
+				user.rooms = user?.rooms.filter((r) => r !== parsedData.roomId)
 			}
 
 			if (parsedData.type === 'chat') {
