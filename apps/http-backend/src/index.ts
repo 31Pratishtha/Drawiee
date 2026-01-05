@@ -113,7 +113,8 @@ app.post('/room', middleware, async (req, res) => {
 	
 })
 
-app.get('/chats/:roomId', middleware, async (req, res) => {
+// app.get('/chats/:roomId', middleware, async (req, res) => {
+app.get('/chats/:roomId', async (req, res) => {
 	const roomId = Number(req.params.roomId)
 
 	const messages = await prisma.chat.findMany({
@@ -128,6 +129,26 @@ app.get('/chats/:roomId', middleware, async (req, res) => {
 
 	res.json({
 		messages: messages.reverse()
+	})
+})
+
+app.get('/room/:slug', async (req, res) => {
+	const slug = req.params.slug
+
+	const roomId = await prisma.room.findUnique({
+		where: {
+			slug
+		}
+	})
+
+	if(!roomId){
+		return res.status(404).json({
+			message: 'Room not found'
+		})
+	}
+
+	res.json({
+		roomId: roomId.id
 	})
 })
 
