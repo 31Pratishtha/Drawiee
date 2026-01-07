@@ -65,7 +65,7 @@ wss.on('connection', function connection(ws, request) {
 
 			if (parsedData.type === 'join_room') {
 				const roomId = parsedData.roomId
-				
+
 				const checkRoom = await prisma.room.findUnique({
 					where: {
 						id: roomId
