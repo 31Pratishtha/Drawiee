@@ -4,8 +4,9 @@ import useConnectWebSocket from '../hooks/useConnectWebSocket'
 
 interface IChatRoomClientProps {
 	roomId: number
+	messages: string[]
 }
-export default function ChatRoomClient({ roomId }: IChatRoomClientProps) {
+export default function ChatRoomClient({ roomId, messages }: IChatRoomClientProps) {
 	const { isConnecting, socket } = useConnectWebSocket()
 
 	const [message, setMessage] = useState('')
@@ -35,6 +36,12 @@ export default function ChatRoomClient({ roomId }: IChatRoomClientProps) {
 
 	return (
 		<>
+		<h1>Room: {roomId}</h1>
+				<div>
+					{messages.map((msg: any) => (
+						<div key={msg.id}>{msg.message}</div>
+					))}
+				</div>
 			<input
 				type='text'
 				placeholder='Message'

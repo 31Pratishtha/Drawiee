@@ -1,26 +1,27 @@
-import axios from 'axios'
+import { getServerClient } from '../../../api/serverClient'
 import { ChatRoomClient } from '../../../components'
-import { HTTP_URL } from '../../../config'
-import { IMessage } from '../../../interfaces'
 
 const fetchRoomId = async (slug: string) => {
-	const response = await axios.get(`${HTTP_URL}/room/${slug}`)
+	const client = await getServerClient()
 
-	if (response.status !== 200) {
-		throw new Error('Room not found')
+	try {
+		const response = await client.get(`/room/${slug}`)
+
+		return response.data.roomId
+	} catch (error) {
+		console.error('Error fetching room', error)
 	}
-
-	return response.data.roomId
 }
 
 const fetchChats = async (roomId: number) => {
-	const response = await axios.get(`${HTTP_URL}/chats/${roomId}`)
+	const client = await getServerClient()
 
-	if (response.status !== 200) {
-		throw new Error('Chats not found')
+	try {
+		const response = await client.get(`/chats/${roomId}`)
+		return response.data
+	} catch (error) {
+		console.error('Error fetching chats', error)
 	}
-
-	return response.data
 }
 
 export default async function ChatRoom({
@@ -36,22 +37,8 @@ export default async function ChatRoom({
 
 		return (
 			<>
-				<h1>Room: {roomId}</h1>
-				<div>
-					{messages.map((msg: IMessage) => (
-						<div key={msg.id}>{msg.message}</div>
-					))}
-				</div>
-				<div>
-					<ChatRoomClient roomId={roomId} />
-				</div>
+				<ChatRoomClient roomId={roomId} messages={messages} />
 			</>
 		)
-	} catch (error) {
-		return (
-			<div>
-				<h2>error: {error as string}</h2>
-			</div>
-		)
-	}
+	} catch (error) {}
 }

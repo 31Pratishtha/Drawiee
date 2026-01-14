@@ -9,9 +9,18 @@ import express from 'express'
 import jwt from 'jsonwebtoken'
 import { middleware } from './middleware.js'
 import { JWT_SECRET } from '@repo/backend-common/config'
+import cookieParser from 'cookie-parser'
+import cors from 'cors'
  
 const app = express()
 app.use(express.json())
+app.use(cookieParser())
+app.use(
+	cors({
+		origin: 'http://localhost:3000',
+		credentials: true,
+	})
+)
 
 //Signup
 app.post('/signup', async (req, res) => {
@@ -35,8 +44,16 @@ app.post('/signup', async (req, res) => {
 			},
 		})
 
+		const token = jwt.sign({ userId: user?.id }, JWT_SECRET)
+
+		res.cookie('auth_token', token, {
+			httpOnly: true,
+			secure: false,
+			maxAge: 1000 * 60 * 60,
+		})
+
 		res.json({
-			userId: user.id,
+			message: 'Signup successful',
 		})
 	} catch (e) {
 		res.status(411).json({
@@ -46,7 +63,6 @@ app.post('/signup', async (req, res) => {
 })
 
 app.post('/signin', async (req, res) => {
-
 	const parsedData = SignInSchema.safeParse(req.body)
 
 	//todo: compare hashed password
@@ -59,31 +75,69 @@ app.post('/signin', async (req, res) => {
 	const user = await prisma.user.findFirst({
 		where: {
 			email: parsedData.data.email,
-			password: parsedData.data.password
-		}
+			password: parsedData.data.password,
+		},
 	})
 
-	if(!user){
+	if (!user) {
 		res.status(403).json({
-			message: "Not authorized"
+			message: 'Not authorized',
 		})
 		return
 	}
 
 	const token = jwt.sign({ userId: user?.id }, JWT_SECRET)
 
-	res.json({
-		token,
+	res.cookie('auth_token', token, {
+		httpOnly: true,
+		secure: false,
+		maxAge: 1000 * 60 * 60,
 	})
+
+	res.json({
+		message: 'Login successful',
+	})
+})
+
+app.get('/me', middleware, async (req, res) => {
+	try {
+		//@ts-ignore //todo
+		const userId = req.userId
+
+		const user = await prisma.user.findUnique({
+			where: {
+				id: userId,
+			},
+			select: {
+				id: true,
+				email: true,
+				name: true,
+				photo: true,
+			},
+		})
+
+		if (!user) {
+			return res.status(404).json({
+				message: 'User not found',
+			})
+		}
+		res.json({
+			user,
+		})
+	} catch (error) {
+		return res.status(403).json({
+			message: 'Unauthorized',
+		})
+	}
 })
 
 app.post('/room', middleware, async (req, res) => {
 	//db call
 	const parsedData = CreateRoomSchema.safeParse(req.body)
 
-	if(!parsedData.success){
+	if (!parsedData.success) {
 		res.json({
-			message: 'Incorrect Input from room'
+			message: 'Incorrect Input from room',
 		})
 		return
 	}
@@ -93,24 +147,20 @@ app.post('/room', middleware, async (req, res) => {
 
 	try {
 		const room = await prisma.room.create({
-		data: {
-			slug: parsedData.data.name,
-			adminId: userId
-		}
-	})
+			data: {
+				slug: parsedData.data.name,
+				adminId: userId,
+			},
+		})
 
-	res.json({
-		roomId: room.id
-	})
-	
+		res.json({
+			roomId: room.id,
+		})
 	} catch (e) {
 		res.status(411).json({
-			message: 'room already exists'
+			message: 'room already exists',
 		})
-		
 	}
-
-	
 })
 
 app.get('/chats/:roomId', middleware, async (req, res) => {
@@ -118,39 +168,42 @@ app.get('/chats/:roomId', middleware, async (req, res) => {
 
 	const messages = await prisma.chat.findMany({
 		where: {
-			roomId: roomId
+			roomId: roomId,
 		},
 		orderBy: {
-			id: 'desc'
+			id: 'desc',
 		},
 		take: 50,
 	})
 
 	res.json({
-		messages: messages.reverse()
+		messages: messages.reverse(),
 	})
 })
 
-app.get('/room/:slug', async (req, res) => {
+app.get('/room/:slug', middleware, async (req, res) => {
 	const slug = req.params.slug
 
 	const roomId = await prisma.room.findUnique({
 		where: {
-			slug
-		}
+			slug: slug as string,
+		},
+		select: {
+			id: true,
+		},
 	})
 
-	if(!roomId){
+	if (!roomId) {
 		return res.status(404).json({
-			message: 'Room not found'
+			message: 'Room not found',
 		})
 	}
 
 	res.json({
-		roomId: roomId.id
+		roomId: roomId.id,
 	})
 })
 
 app.listen(3001, () => {
-	console.log('Server is running on port 3001');
+	console.log('Server is running on port 3001')
 })

@@ -41,9 +41,7 @@ wss.on('connection', function connection(ws, request) {
 		return
 	}
 
-	const queryParams = new URLSearchParams(url.split('?')[1])
-
-	const token = queryParams.get('token') ?? ''
+	const token = request.headers.cookie?.split('=')[1] ?? ''
 
 	const userId = checkUser(token)
 
